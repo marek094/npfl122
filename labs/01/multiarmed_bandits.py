@@ -24,6 +24,41 @@ class MultiArmedBandits():
         return None, reward, self._done, {}
 
 
+class GreedyPlayer():
+    def __init__(self, k):
+        self.q = np.zeros(k)
+        self.n = np.zeros(k)
+
+    def choose_action(self, eps):
+        if np.random.uniform() < eps:
+            return np.random.randint(self.q.size)
+        return np.argmax(self.q)
+
+    def feedback(self, action, reward):
+        self.n[action] += 1
+        self.q[action] += (reward - self.q[action]) / self.n[action]
+
+class UsbPlayer():
+    def __init__(self, k):
+        pass
+
+    def choose_action(self, eps):
+        pass
+
+    def feedback(self, action, reward):
+        pass
+
+class GradientPlayer():
+    def __init__(self, k):
+        pass
+
+    def choose_action(self, eps):
+        pass
+
+    def feedback(self, action, reward):
+        pass
+
+
 if __name__ == "__main__":
     # Fix random seed
     np.random.seed(42)
@@ -34,37 +69,29 @@ if __name__ == "__main__":
     parser.add_argument("--bandits", default=10, type=int, help="Number of bandits.")
     parser.add_argument("--episodes", default=1000, type=int, help="Training episodes.")
     parser.add_argument("--episode_length", default=1000, type=int, help="Number of trials per episode.")
-
     parser.add_argument("--mode", default="greedy", type=str, help="Mode to use -- greedy, usb and gradient.")
     parser.add_argument("--alpha", default=0, type=float, help="Learning rate to use (if applicable).")
     parser.add_argument("--c", default=1., type=float, help="Confidence level in UCB.")
     parser.add_argument("--epsilon", default=0.1, type=float, help="Exploration factor (if applicable).")
-    parser.add_argument("--initial", default=0, type=float, help="Initial value function levels.")
+    parser.add_argument("--initial", default=0, type=float, help="Initial value function levels.") #Q
     args = parser.parse_args()
 
     env = MultiArmedBandits(args.bandits, args.episode_length)
 
-    # TODO: Initialize all computation
-
     for episode in range(args.episodes):
         env.reset()
 
-        # TODO: Initialize episode
+        player = {
+            "greedy": GreedyPlayer
+        }[args.mode](args.bandits)
 
         done = False
         while not done:
-            # TODO: Action selection according to mode
-            if args.mode == "greedy":
-                action =
-            elif args.mode == "ucb":
-                action =
-            elif args.mode == "gradient":
-                action =
-
+            action = player.choose_action(args.epsilon)
             _, reward, done, _ = env.step(action)
-
-            # TODO: Update parameters
-
+            player.feedback(action, reward)
+            print(action, reward)
+            
         # TODO: Maybe process episode results
 
     # TODO: Print out final score as mean and variance of all obtained rewards.
