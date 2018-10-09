@@ -24,13 +24,18 @@ class MultiArmedBandits():
         return None, reward, self._done, {}
 
 
-class GreedyPlayer():
+class Player():
     def __init__(self, k):
         self.q = np.zeros(k)
         self.n = np.zeros(k)
 
-    def choose_action(self, eps):
-        if np.random.uniform() < eps:
+class GreedyPlayer(Player):
+    def __init__(self, k, eps):
+        super().__init__(k)
+        self.eps = eps
+
+    def choose_action(self):
+        if np.random.uniform() < self.eps:
             return np.random.randint(self.q.size)
         return np.argmax(self.q)
 
@@ -38,21 +43,35 @@ class GreedyPlayer():
         self.n[action] += 1
         self.q[action] += (reward - self.q[action]) / self.n[action]
 
-class UsbPlayer():
-    def __init__(self, k):
-        pass
-
-    def choose_action(self, eps):
-        pass
-
+class BiasedGreedyPlayer(GreedyPlayer):
+    def __init__(self, k, eps, alpha):
+        super().__init__(k, eps)
+        self.alpha = alpha
+    
     def feedback(self, action, reward):
-        pass
+        self.n[action] += 1
+        self.q[action] += (reward - self.q[action]) * self.alpha
+
+class InitBiasedGreedyPlayer(BiasedGreedyPlayer):
+    def __init__(self, k, eps, alpha, initial):
+        super().__init__(k, eps, alpha)
+        self.q = np.repeat(initial, k)
+
+class UsbGreedyPlayer(GreedyPlayer):
+    def __init__(self, k, eps, c):
+        super().__init__(k, eps)
+        self.c = c
+
+    def choose_action(self):
+        if np.random.uniform() < self.eps:
+            return np.random.randint(self.q.size)
+        return np.argmax( self.q + self.c * np.sqrt( np.log(np.sum(self.n)) / self.n) )
 
 class GradientPlayer():
     def __init__(self, k):
         pass
 
-    def choose_action(self, eps):
+    def choose_action(self):
         pass
 
     def feedback(self, action, reward):
@@ -81,13 +100,21 @@ if __name__ == "__main__":
     for episode in range(args.episodes):
         env.reset()
 
-        player = {
-            "greedy": GreedyPlayer
-        }[args.mode](args.bandits)
+        if args.mode == 'greedy':
+            if args.alpha == 0:
+                player = GreedyPlayer(args.bandits, args.epsilon)
+            elif args.initial == 0:
+                player = BiasedGreedyPlayer(args.bandits, args.epsilon, args.alpha)
+            else:
+                player = InitBiasedGreedyPlayer(args.bandits, args.epsilon, args.alpha, args.initial)
+        elif args.mode == 'usb':
+            player = UsbGreedyPlayer(args.bandits, args.epsilon, args.c)
+            
+
 
         done = False
         while not done:
-            action = player.choose_action(args.epsilon)
+            action = player.choose_action()
             _, reward, done, _ = env.step(action)
             player.feedback(action, reward)
             print(action, reward)
