@@ -43,6 +43,9 @@ class GreedyPlayer(Player):
         self.n[action] += 1
         self.q[action] += (reward - self.q[action]) / self.n[action]
 
+    def get_param(self):
+        return self.eps
+
 class BiasedGreedyPlayer(GreedyPlayer):
     def __init__(self, k, eps, alpha):
         super().__init__(k, eps)
@@ -61,6 +64,7 @@ class UcbGreedyPlayer(GreedyPlayer):
     def __init__(self, k, eps, c):
         super().__init__(k, eps)
         self.c = c
+        self.n = np.repeat(1/k, k)
 
     def choose_action(self):
         if np.random.uniform() < self.eps:
@@ -83,6 +87,9 @@ class GradientPlayer():
         self.h -= self.alpha * reward * self.distr
         self.h[action] = ha + self.alpha * reward * (1 - self.distr[action])
 
+    def get_param(self):
+        return self.alpha
+
 
 if __name__ == "__main__":
     # Fix random seed
@@ -102,8 +109,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     env = MultiArmedBandits(args.bandits, args.episode_length)
-
+    reward_sum = 0
+    count = 0
     for episode in range(args.episodes):
+        print(f'{episode+1}/{args.episodes}', end='\r')
         env.reset()
 
         if args.mode == 'greedy':
@@ -117,15 +126,16 @@ if __name__ == "__main__":
             player = UcbGreedyPlayer(args.bandits, args.epsilon, args.c)
         elif args.mode == 'gradient':
             player = GradientPlayer(args.bandits, args.alpha)
-
+        else:
+            raise Exception('Unknown --mode ' + args.mode)
 
         done = False
         while not done:
             action = player.choose_action()
             _, reward, done, _ = env.step(action)
             player.feedback(action, reward)
-            print(action, reward)
-            
-        # TODO: Maybe process episode results
-
-    # TODO: Print out final score as mean and variance of all obtained rewards.
+            # print(action, reward)
+            reward_sum += reward 
+            count += 1
+    print()
+    print(f'$\t{player.__class__.__name__}\t{player.get_param()}\t{reward_sum/count}\t{vars(args)}')
