@@ -57,7 +57,7 @@ class InitBiasedGreedyPlayer(BiasedGreedyPlayer):
         super().__init__(k, eps, alpha)
         self.q = np.repeat(initial, k)
 
-class UsbGreedyPlayer(GreedyPlayer):
+class UcbGreedyPlayer(GreedyPlayer):
     def __init__(self, k, eps, c):
         super().__init__(k, eps)
         self.c = c
@@ -68,14 +68,20 @@ class UsbGreedyPlayer(GreedyPlayer):
         return np.argmax( self.q + self.c * np.sqrt( np.log(np.sum(self.n)) / self.n) )
 
 class GradientPlayer():
-    def __init__(self, k):
-        pass
+    def __init__(self, k, alpha):
+        self.alpha = alpha
+        self.h = np.zeros(k)
 
     def choose_action(self):
-        pass
+        exp = np.exp(self.h)
+        self.distr = exp / np.sum(exp)
+        action = np.random.choice(self.h.size, 1, p=self.distr)[0]
+        return action
 
     def feedback(self, action, reward):
-        pass
+        ha = self.h[action]
+        self.h -= self.alpha * reward * self.distr
+        self.h[action] = ha + self.alpha * reward * (1 - self.distr[action])
 
 
 if __name__ == "__main__":
@@ -88,7 +94,7 @@ if __name__ == "__main__":
     parser.add_argument("--bandits", default=10, type=int, help="Number of bandits.")
     parser.add_argument("--episodes", default=1000, type=int, help="Training episodes.")
     parser.add_argument("--episode_length", default=1000, type=int, help="Number of trials per episode.")
-    parser.add_argument("--mode", default="greedy", type=str, help="Mode to use -- greedy, usb and gradient.")
+    parser.add_argument("--mode", default="greedy", type=str, help="Mode to use -- greedy, ucb and gradient.")
     parser.add_argument("--alpha", default=0, type=float, help="Learning rate to use (if applicable).")
     parser.add_argument("--c", default=1., type=float, help="Confidence level in UCB.")
     parser.add_argument("--epsilon", default=0.1, type=float, help="Exploration factor (if applicable).")
@@ -107,9 +113,10 @@ if __name__ == "__main__":
                 player = BiasedGreedyPlayer(args.bandits, args.epsilon, args.alpha)
             else:
                 player = InitBiasedGreedyPlayer(args.bandits, args.epsilon, args.alpha, args.initial)
-        elif args.mode == 'usb':
-            player = UsbGreedyPlayer(args.bandits, args.epsilon, args.c)
-            
+        elif args.mode == 'ucb':
+            player = UcbGreedyPlayer(args.bandits, args.epsilon, args.c)
+        elif args.mode == 'gradient':
+            player = GradientPlayer(args.bandits, args.alpha)
 
 
         done = False
