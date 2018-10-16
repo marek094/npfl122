@@ -67,9 +67,10 @@ class UcbGreedyPlayer(GreedyPlayer):
         self.n = np.repeat(1/k, k)
 
     def choose_action(self):
-        if np.random.uniform() < self.eps:
-            return np.random.randint(self.q.size)
         return np.argmax( self.q + self.c * np.sqrt( np.log(np.sum(self.n)) / self.n) )
+
+    def get_param(self):
+        return self.c
 
 class GradientPlayer():
     def __init__(self, k, alpha):

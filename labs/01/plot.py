@@ -12,14 +12,16 @@ for line in fileinput.input():
 print(graph)
 
 fig, ax = plt.subplots()
-ax.plot(*zip(*graph['GreedyPlayer']), 'r')
-ax.plot(*zip(*graph['BiasedGreedyPlayer']), 'r')
-ax.plot(*zip(*graph['InitBiasedGreedyPlayer']), 'r')
 
-ax.plot(*zip(*graph['UcbGreedyPlayer']), 'g')
+colors = ['r', 'y','m','g', 'b']
+for name, color in zip(graph, colors):
+    ax.plot(*zip(*graph[name]), color)
 
-ax.plot(*zip(*graph['GradientPlayer']), 'b')
-
+# ax.plot(*zip(*graph['BiasedGreedyPlayer']), 'r')
+# ax.plot(*zip(*graph['InitBiasedGreedyPlayer']), 'r')
+# ax.plot(*zip(*graph['UcbGreedyPlayer']), 'g')
+# ax.plot(*zip(*graph['GradientPlayer']), 'b')
+ax.set_xscale("log", nonposx='clip')
 
 fig.suptitle('Categorical Plotting')
 
