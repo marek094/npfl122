@@ -60,7 +60,7 @@ class InitBiasedGreedyPlayer(BiasedGreedyPlayer):
         super().__init__(k, eps, alpha)
         self.q = np.repeat(initial, k)
 
-class UcbGreedyPlayer(GreedyPlayer):
+class UcbPlayer(GreedyPlayer):
     def __init__(self, k, eps, c):
         super().__init__(k, eps)
         self.c = c
@@ -124,7 +124,7 @@ if __name__ == "__main__":
             else:
                 player = InitBiasedGreedyPlayer(args.bandits, args.epsilon, args.alpha, args.initial)
         elif args.mode == 'ucb':
-            player = UcbGreedyPlayer(args.bandits, args.epsilon, args.c)
+            player = UcbPlayer(args.bandits, args.epsilon, args.c)
         elif args.mode == 'gradient':
             player = GradientPlayer(args.bandits, args.alpha)
         else:

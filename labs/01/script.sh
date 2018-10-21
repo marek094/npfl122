@@ -13,6 +13,7 @@ python3 multiarmed_bandits.py --mode greedy --alpha 0.15 --epsilon 0.0625
 python3 multiarmed_bandits.py --mode greedy --alpha 0.15 --epsilon 0.125
 python3 multiarmed_bandits.py --mode greedy --alpha 0.15 --epsilon 0.25
 
+python3 multiarmed_bandits.py --mode greedy --initial 1.0 --alpha 0.15 --epsilon 0.0078125
 python3 multiarmed_bandits.py --mode greedy --initial 1.0 --alpha 0.15 --epsilon 0.015625
 python3 multiarmed_bandits.py --mode greedy --initial 1.0 --alpha 0.15 --epsilon 0.03125
 python3 multiarmed_bandits.py --mode greedy --initial 1.0 --alpha 0.15 --epsilon 0.0625
